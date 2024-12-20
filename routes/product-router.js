@@ -20,113 +20,68 @@ const upload = multer({ storage: storage })
 
 let admin;
 
-productRouter.get('/', auth.isAdmin, (req, res) => {
-
-    let count;
-
-    Product.count((err, c) => {
-
-        count = c;
-        Product.find(async (err, products) => {
-
-            if (err) return console.log(err);
-            admin = req.session.admin;
-            const success = req.flash('success')
-
-            res.render('admin/products', { products: products, count: count, success: success, admin });
-
-        });
-    });
-
-
-});
-
-productRouter.get('/add-product', auth.isAdmin, (req, res) => {
-
-    let title = "";
-    let description = "";
-    let price = "";
-
-    Category.find(function (err, categories) {
-
-        admin = req.session.admin;
-        const error = req.flash('error')
-
-        res.render('admin/add-product',
-            {
-                admin,
-                error,
-                title,
-                description,
-                categories,
-                price,
-            }
-        );
-
-    });
-
-});
-
-productRouter.post('/add-product', upload.single('image'), function (req, res) {
-
-    let { description, price, category,special,vegan } = req.body;
-    let title = req.body.title.toUpperCase();
-    let slug = req.body.title.toLowerCase();
-    let image = typeof req.file !== "undefined" ? req.file.filename : "";
-
-    Product.findOne({ slug: slug, category: category }, function (err, product) {
+productRouter.get('/', (req, res) => {
+    Product.find({}, (err, products) => {
         if (err) {
-            console.log('error in cat find');
-
-            return console.log(err);
-        }
-        if (product) {
-            console.log("pro exists");
-            fs.unlink('public/images/product-img/' + image, (err) => {
-                if (err) console.log(err);
-                console.log('old img deleted');
-            });
-            req.flash('error', 'Product exists, choose another.');
-            return res.redirect('/admin/product/add-product');
-        } else {
-            let price2 = parseFloat(price).toFixed(2);
-            let product = new Product({
-                title: title,
-                slug: slug,
-                description: description,
-                price: price2,
-                category: category,
-                image: image,
-                images: [],
-                special : special,
-                vegan:vegan
-            });
-
-            product.save(function (err) {
-                if (err) {
-                    return console.log(err);
-                }
-
-                Product.find(function (err, products) {
-                    if (err) {
-                        console.log(err);
-                        console.log('error in finding');
-
-                    } else {
-                        req.app.locals.products = products;
-                    }
-                });
-
-
-            });
+            console.log('Lỗi khi truy vấn sản phẩm:', err);
+            return res.status(500).send('Lỗi khi truy vấn sản phẩm');
         }
 
-        req.flash('success', 'Product added!');
-        res.redirect('/admin/product');
-
-
+        console.log('Sản phẩm đã lấy thành công:', products); 
+        
+        res.render('admin/products', { products: products });
     });
 });
+
+
+
+productRouter.get('/add-product', async (req, res) => {
+    try {
+      const categories = await Category.find({}); // Lấy danh sách danh mục
+      const success = req.flash('success');
+      const error = req.flash('error');
+      res.render('admin/add-product', { categories, success, error });
+    } catch (err) {
+      console.error(err);
+      req.flash('error', 'Something went wrong while loading the add product page.');
+      res.redirect('/admin');
+    }
+  });
+  
+  // Route xử lý thêm sản phẩm
+const slugify = require('slugify'); // Cài đặt thư viện slugify để tạo slug tự động
+
+productRouter.post('/add-product', upload.single('image'), async (req, res) => {
+  try {
+    const { title, description, price, category, special, vegan } = req.body;
+    
+    // Tạo slug tự động từ title nếu không có slug
+    const slug = slugify(title, { lower: true });
+
+    const image = req.file ? req.file.filename : null;
+
+    const newProduct = new Product({
+      title,
+      description,
+      price,
+      category,
+      image,
+      slug, // Sử dụng slug tự tạo
+      special: special === 'on',
+      vegan: vegan === 'on',
+    });
+
+    await newProduct.save();
+    res.redirect('/admin/product');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/add-product');
+  }
+});
+
+
+
+
 
 productRouter.get('/edit-product/:id', auth.isAdmin, (req, res) => {
     
@@ -206,18 +161,6 @@ productRouter.post('/edit-product/:id', upload.single('image'), (req, res) => {
                         product.image = img,
                         product.special = special,
                         product.vegan = vegan
-
-                // }else{
-                //     product.title = title,
-                //     product.slug = slug,
-                //     product.description = description,
-                //     product.price = price2,
-                //     product.category = category,
-                //     product.image = pimage,
-                //     product.special = special,
-                //     product.vegan = vegan
-
-                // }
 
                 await product.save((err) => {
                     if (err) return console.log(err);

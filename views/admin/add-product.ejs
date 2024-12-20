@@ -1,56 +1,57 @@
 <%- include('../layouts/admin-header.ejs') %>
 
-<div class="dash-content container add">
-    <h2 class="page-title">Add a Product</h2>
-    <a href="/admin/product" class="btn"><i class="fa fa-angle-left"></i></a>
-        
-    <br><br>
-    <div class="row">
-        <form id="add-edit" method="post" action="/admin/product/add-product" enctype="multipart/form-data">
-            <% error.forEach(function(err){ %>
-                <div class="alert alert-success" role="alert">
-                    <%= err %>
-                </div>
-              <%})%>
-            <div class="form-group">
-                <input id="title" type="text" class="box" name="title" value="<%= title %>" placeholder="Title">
-            </div> 
-            <div class="form-group">
-                <textarea id="description" type="text" class="box" cols="30" rows="10" name="description" value="<%= description %>" placeholder="description"></textarea>
-            </div>
-            <div class="form-group">
-                <select id="category"  class="box" name="category" value="" placeholder="category">
-                        <option value="">category</option>
-                    <% categories.forEach(function(cat){%>
-                        <option value="<%= cat.title %>"><%= cat.title %></option>
-                        <%});%>
-                </select>
-            </div>
-            <div class="form-group">
-                <input id="image" type="file" class="box" name="image">
-                <img src="#" id="img-prvw" alt="">
-            </div>
-            <div class="form-group d-flex">
-                <div class=" pe-5">
-                    <input type="checkbox" name="special" id="special" value="true">
-                <label class="h4" for="special">Special</label>
-                </div>
-                <div>
+<div class="container mt-5">
+  <h2>Add New Product</h2>
 
-                    <input type="checkbox" name="vegan" id="vegan" value="true">
-                    <label class="h4" for="vegan">Vegan</label>
-                </div>
-            </div>
-            <div class="form-group">
-                <input id="price" type="number" class="box" name="price" value="<%= price %>" placeholder="price in rupees">
-            </div>
-            <br>
-            <button type="submit" class="btn btn-default">Submit</button>
-        </form>
+  <% success.forEach(function(msg) { %>
+    <div class="alert alert-success">
+      <%= msg %>
     </div>
-</div>
-    
-</section>
+  <% }) %>
+  <% error.forEach(function(err) { %>
+    <div class="alert alert-danger">
+      <%= err %>
+    </div>
+  <% }) %>
 
+  <form action="/admin/product/add-product" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="title" class="form-label">Product Title</label>
+      <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+  
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+    </div>
+  
+    <div class="mb-3">
+      <label for="price" class="form-label">Price</label>
+      <input type="number" class="form-control" id="price" name="price" required>
+    </div>
+  
+    <div class="mb-3">
+      <label for="category" class="form-label">Category</label>
+      <select class="form-select" id="category" name="category" required>
+        <% categories.forEach(function(cat) { %>
+          <option value="<%= cat._id %>"><%= cat.title %></option>
+        <% }) %>
+      </select>
+    </div>
+  
+    <div class="mb-3">
+      <label for="image" class="form-label">Product Image</label>
+      <input type="file" class="form-control" id="image" name="image" accept="image/*">
+    </div>
+  
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="special" name="special">
+      <label class="form-check-label" for="special">Mark as Special</label>
+    </div>
+  
+    <button type="submit" class="btn btn-primary">Add Product</button>
+  </form>
+  
+</div>
 
 <%- include('../layouts/admin-footer.ejs') %>

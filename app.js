@@ -66,6 +66,9 @@ app.use("/cart", cartRouter);
 app.use("/wishlist", wishlistRouter);
 app.use("/orders", orderRouter);
 
+
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
 app.get("/admin/*", (req, res) => {
   let admin = req.session.admin;
   res.render("admin/404", { admin });

@@ -3,9 +3,6 @@ const adminSchema = new mongoose.Schema({
     name : {
         type : String ,
     },
-    email : {
-        type : String ,
-    },
     contact : {
         type : Number 
     },
